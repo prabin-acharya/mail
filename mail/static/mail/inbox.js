@@ -6,16 +6,44 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
 
+  // Add event listener to the form
+  document.querySelector("#compose-form").addEventListener("submit", send_email);
+
   // By default, load the inbox
   load_mailbox('inbox');
 });
 
-function compose_email() {
+//Form data Processing
+function send_email(event){
+  // Modifies the default beheavor so it doesn't reload the page after submitting.
+  event.preventDefault();
 
+  //const from = document.querySelector('input').value;
+  const to = document.querySelector('#compose-recipients').value;
+  const subject = document.querySelector('#compose-subject').value;
+  const body = document.querySelector('#compose-body').value;
+
+  fetch('/emails', {  
+    method: 'POST',
+    body: JSON.stringify({
+      reciepients : to,
+      subject : subject,
+      body : body
+    }),
+  })
+
+  .then(response => response.json())
+  .then(result => {
+    load_mailbox('sent', result);
+  })
+  .catch((error) => console.log(error));
+}
+
+
+function compose_email() {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
-
   // Clear out composition fields
   document.querySelector('#compose-recipients').value = '';
   document.querySelector('#compose-subject').value = '';
