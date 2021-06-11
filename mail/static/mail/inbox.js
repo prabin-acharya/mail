@@ -26,14 +26,13 @@ function send_email(event){
   fetch('/emails', {  
     method: 'POST',
     body: JSON.stringify({
-      reciepients : to,
+      recipients : to,
       subject : subject,
       body : body
     }),
   })
-
-  .then(response => response.json())
-  .then(result => {
+  .then((response) => response.json())
+  .then((result) => {
     load_mailbox('sent', result);
   })
   .catch((error) => console.log(error));
@@ -58,4 +57,27 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  
+
+  //Get data of the corresponding mailbox from the server
+  fetch(`emails/${mailbox}`)
+  .then((response) => response.json())
+  .then((data) => {
+    let emaildiv='';
+    data.forEach((email) => {
+      emaildiv += `
+        <div class="email">
+        <ul>
+          <li>Subject : ${email.subject}</li>
+          <li>From : ${email.sender}</li>
+          <li>Body : ${email.body}</li>
+        </ul>
+        </div>  
+      `;
+      
+      document.querySelector("#emails-view").innerHTML = emaildiv;
+    })
+    
+  })
 }
