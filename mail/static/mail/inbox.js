@@ -50,10 +50,11 @@ function compose_email() {
 }
 
 function load_mailbox(mailbox) {
-  
+
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#email-view').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -66,6 +67,7 @@ function load_mailbox(mailbox) {
   .then((emails)=>{
     emails.forEach(function(email){
     const parent_div = document.createElement('div') 
+    parent_div.addEventListener('click', ()=>read_email(email.id))
     build_email(email, parent_div)
   })
   })
@@ -73,8 +75,55 @@ function load_mailbox(mailbox) {
 
 
 function build_email(email, parent_div){
-  parent_div.innerHTML = `<b> ${email.sender}</b> : ${email.subject}<hr> `
+  if(email.read===false){
+    parent_div.innerHTML = `<b> ${email.sender}</b> : ${email.subject}<hr> `
+  }else{
+    parent_div.innerHTML = ` ${email.sender} : ${email.subject}<hr> `
+  }
   document.querySelector('#emails-view').appendChild(parent_div);
 }
 
+function read_email(email_id){
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-view').style.display = 'block';
+
+  // Erase any email that was here
+  document.querySelector("#email-view").innerHTML = "";
+  fetch(`emails/${email_id}`)
+  .then((response)=>response.json())
+  .then((email)=>{
+    let display = `
+      <h3>${email.subject}</h3>
+      From : <b>${email.sender}</b>
+      At : ${email.timestamp}
+      <br><br>
+      ${email.body}
+      <br>
+      <button id='archivebutton'>Archive this Email</button>
+    `;
+    document.querySelector('#email-view').innerHTML = display;
+    document.querySelector('#archivebutton').addEventListener('click',()=> {
+      archive_email(email)
+      load_mailbox('inbox')
+    })
+  })
+
+  fetch(`/emails/${email_id}`,{
+    method:"PUT",
+    body:JSON.stringify({
+      read : true
+      })
+  })
 }
+
+function archive_email(email){
+  fetch(`/emails/${email.id}`,{
+    method:"PUT",
+    body:JSON.stringify({
+      archived : true
+    }),
+  })
+  .catch((error) => console.log(`Hello:${error}`))
+  }
+}
+
