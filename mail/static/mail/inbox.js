@@ -68,20 +68,43 @@ function load_mailbox(mailbox) {
     emails.forEach(function(email){
     const parent_div = document.createElement('div') 
     parent_div.addEventListener('click', ()=>read_email(email.id))
-    build_email(email, parent_div)
+    build_emails(email, parent_div, mailbox)
   })
   })
   .catch((error)=>console.log(error))
 
 
-function build_email(email, parent_div){
-  if(email.read===false){
-    parent_div.innerHTML = `<b> ${email.sender}</b> : ${email.subject}<hr> `
+function build_emails(email, parent_div, mailbox){
+  if(mailbox==='inbox'){
+    if(email.read===false){
+      parent_div.innerHTML = ` <b>${email.sender}</b> ${email.subject} `
+    }else{
+      parent_div.innerHTML = ` ${email.sender} :   ${email.subject} `
+    }
+  }else if(mailbox==='sent'){
+    parent_div.innerHTML = ` ${email.recipients} : ${email.subject} `
   }else{
-    parent_div.innerHTML = ` ${email.sender} : ${email.subject}<hr> `
+    parent_div.innerHTML = ` ${email.recipients} :  ${email.subject} `
   }
+
+  const date = document.createElement("div");
+  date.innerHTML = email["timestamp"];
+  date.style.display = "inline-block";
+  date.style["font-size"] = '14px';
+  date.style.float = "right";
+  parent_div.appendChild(date);
+
   document.querySelector('#emails-view').appendChild(parent_div);
+
+  parent_div.style.borderStyle = "ridge";
+  parent_div.style.borderWidth = "3px";
+  parent_div.style['border-radius'] = "6px";
+  parent_div.style.padding = "4px";
+  parent_div.style.margin = "10px";
+  parent_div.style.cursor = "pointer";
 }
+
+
 
 function read_email(email_id){
   document.querySelector('#emails-view').style.display = 'none';
@@ -107,7 +130,6 @@ function read_email(email_id){
       load_mailbox('inbox')
     })
   })
-
   fetch(`/emails/${email_id}`,{
     method:"PUT",
     body:JSON.stringify({
