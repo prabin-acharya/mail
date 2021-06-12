@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#compose').addEventListener('click', compose_email);
 
   // Add event listener to the form
-  document.querySelector("#compose-form").addEventListener("submit", send_email);
+  document.querySelector('#compose-form').addEventListener('submit', send_email);
 
   // By default, load the inbox
   load_mailbox('inbox');
@@ -62,22 +62,19 @@ function load_mailbox(mailbox) {
 
   //Get data of the corresponding mailbox from the server
   fetch(`emails/${mailbox}`)
-  .then((response) => response.json())
-  .then((data) => {
-    let emaildiv='';
-    data.forEach((email) => {
-      emaildiv += `
-        <div class="email">
-        <ul>
-          <li>Subject : ${email.subject}</li>
-          <li>From : ${email.sender}</li>
-          <li>Body : ${email.body}</li>
-        </ul>
-        </div>  
-      `;
-      
-      document.querySelector("#emails-view").innerHTML = emaildiv;
-    })
-    
+  .then((response)=>response.json())
+  .then((emails)=>{
+    emails.forEach(function(email){
+    const parent_div = document.createElement('div') 
+    build_email(email, parent_div)
   })
+  })
+  .catch((error)=>console.log(error))
+
+
+function build_email(email, parent_div){
+  parent_div.innerHTML = `<b> ${email.sender}</b> : ${email.subject}<hr> `
+  document.querySelector('#emails-view').appendChild(parent_div);
+}
+
 }
